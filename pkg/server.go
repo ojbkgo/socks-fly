@@ -52,6 +52,7 @@ func (s *server) Serve() error {
 	if err != nil {
 		return err
 	}
+	s.logger.Printf("server running, waiting for client")
 	s.listener = l
 
 	defer l.Close()
@@ -66,7 +67,6 @@ func (s *server) Serve() error {
 			s.logger.Printf("server stop")
 			return nil
 		default:
-			s.logger.Printf("server running, waiting for client")
 			conn, err := l.Accept()
 			if err != nil {
 				continue
