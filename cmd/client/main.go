@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 
@@ -21,6 +23,7 @@ var (
 	Username   string
 	Password   string
 	AuthMethod int
+	PProf      bool
 
 	RemoteConfig = pkg.ClientConfig{}
 )
@@ -33,6 +36,7 @@ func init() {
 	flag.StringVar(&Username, "username", "", "remote server username")
 	flag.StringVar(&Password, "password", "", "remote server password")
 	flag.IntVar(&AuthMethod, "auth-method", int(socks5.Socks5MethodUserPass), "remote server auth method")
+	flag.BoolVar(&PProf, "pprof", false, "enable pprof")
 	flag.Parse()
 	RemoteConfig = pkg.ClientConfig{
 		RemoteAddr: RemoteAddr,
@@ -45,6 +49,14 @@ func init() {
 
 func main() {
 
+	if PProf {
+		go func() {
+			log.Println("pprof listen on :16060")
+			if err := http.ListenAndServe(":16060", nil); err != nil {
+				log.Printf("pprof listen error: %v\n", err)
+			}
+		}()
+	}
 	// check RemoteAddr
 	if RemoteAddr == "" {
 		log.Printf("remote server address is empty, exit.\n")

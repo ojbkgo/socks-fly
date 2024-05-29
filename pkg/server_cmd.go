@@ -68,34 +68,18 @@ func (s *serverCmdConnect) close() {
 // run transfer
 func (s *serverCmdConnect) run() {
 	go func() {
-		for {
-			select {
-			case <-s.stopCh:
-				s.close()
-				return
-			default:
-				_, err := io.Copy(s.cliConn, s.remoteConn)
-				if err != nil {
-					s.close()
-					return
-				}
-			}
+		_, err := io.Copy(s.cliConn, s.remoteConn)
+		if err != nil {
+			s.close()
+			return
 		}
 	}()
 
 	go func() {
-		for {
-			select {
-			case <-s.stopCh:
-				s.close()
-				return
-			default:
-				_, err := io.Copy(s.remoteConn, s.cliConn)
-				if err != nil {
-					s.close()
-					return
-				}
-			}
+		_, err := io.Copy(s.remoteConn, s.cliConn)
+		if err != nil {
+			s.close()
+			return
 		}
 	}()
 }

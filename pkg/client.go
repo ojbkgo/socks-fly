@@ -83,6 +83,8 @@ func (c *client) handshake() error {
 		return err
 	}
 
+	fmt.Printf("resp: %v\n", resp)
+
 	if resp.Ver != socks5.Socks5Version5 {
 		return fmt.Errorf("socks version not support")
 	}
@@ -100,11 +102,13 @@ func (c *client) handshake() error {
 
 func (c *client) authUserPassword() error {
 	req := &socks5.AuthUserPasswordReq{}
-	req.Ver = socks5.Socks5Version5
+	req.Ver = 0x01
 	req.Ulen = uint8(len(c.config.Username))
 	req.Uname = c.config.Username
 	req.Plen = uint8(len(c.config.Password))
 	req.Passwd = c.config.Password
+
+	fmt.Printf("req: %v\n", req)
 
 	err := req.WriteIO(c.conn)
 	if err != nil {
@@ -116,7 +120,7 @@ func (c *client) authUserPassword() error {
 		return err
 	}
 
-	if resp.Ver != socks5.Socks5Version5 {
+	if resp.Ver != 0x01 {
 		return fmt.Errorf("socks version not support")
 	}
 

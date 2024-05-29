@@ -153,7 +153,7 @@ func (s *server) authUserPassword(conn net.Conn) error {
 	}
 
 	rsp := &socks5.AuthUserPasswordResp{}
-	rsp.Ver = socks5.Socks5Version5
+	rsp.Ver = 0x01
 
 	if s.config.User != req.Uname || s.config.Password != req.Passwd {
 		_ = conn.Close()

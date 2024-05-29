@@ -280,36 +280,18 @@ func (p *httpProxy) Start(addr string, ch chan struct{}) error {
 
 func (p *httpProxy) transfer(f, t net.Conn, stopCh chan struct{}) {
 	go func() {
-		for {
-			select {
-			case <-stopCh:
-				_ = f.Close()
-				_ = t.Close()
-				return
-			default:
-				_, err := io.Copy(f, t)
-				if err != nil {
-					_ = f.Close()
-					_ = t.Close()
-					return
-				}
-			}
-		}
-	}()
-
-	for {
-		select {
-		case <-stopCh:
+		_, err := io.Copy(f, t)
+		if err != nil {
 			_ = f.Close()
 			_ = t.Close()
 			return
-		default:
-			_, err := io.Copy(t, f)
-			if err != nil {
-				_ = f.Close()
-				_ = t.Close()
-				return
-			}
 		}
+	}()
+
+	_, err := io.Copy(t, f)
+	if err != nil {
+		_ = f.Close()
+		_ = t.Close()
+		return
 	}
 }
