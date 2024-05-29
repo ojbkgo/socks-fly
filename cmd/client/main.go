@@ -21,6 +21,8 @@ var (
 	Username   string
 	Password   string
 	AuthMethod int
+
+	RemoteConfig = pkg.ClientConfig{}
 )
 
 func init() {
@@ -31,10 +33,18 @@ func init() {
 	flag.StringVar(&Username, "username", "", "remote server username")
 	flag.StringVar(&Password, "password", "", "remote server password")
 	flag.IntVar(&AuthMethod, "auth-method", int(socks5.Socks5MethodUserPass), "remote server auth method")
+	flag.Parse()
+	RemoteConfig = pkg.ClientConfig{
+		RemoteAddr: RemoteAddr,
+		RemotePort: RemotePort,
+		Username:   Username,
+		Password:   Password,
+		AuthMethod: socks5.Socks5Method(AuthMethod),
+	}
 }
 
 func main() {
-	flag.Parse()
+
 	// check RemoteAddr
 	if RemoteAddr == "" {
 		log.Printf("remote server address is empty, exit.\n")
@@ -65,27 +75,14 @@ func main() {
 		return
 	}
 
-	cli := pkg.NewClient(&pkg.ClientConfig{
-		RemoteAddr: RemoteAddr,
-		RemotePort: RemotePort,
-		Username:   Username,
-		Password:   Password,
-		AuthMethod: socks5.Socks5Method(AuthMethod),
-	})
-
-	if err := cli.Open(); err != nil {
-		log.Printf("open client error: %v, exit.\n", err)
-		return
-	}
-
 	// listen signal
 	sig := make(chan os.Signal, 1)
 	osSignal := []os.Signal{os.Interrupt, os.Kill}
 	signal.Notify(sig, osSignal...)
-	proxy := pkg.NewHttpProxy(fmt.Sprintf("%s:%d", HTTPAddr, HTTPPort))
+	proxy := pkg.NewHttpProxy(&RemoteConfig)
 	ch := make(chan struct{})
 	go func() {
-		if err := proxy.Start(ch, cli); err != nil {
+		if err := proxy.Start(fmt.Sprintf("%s:%d", HTTPAddr, HTTPPort), ch); err != nil {
 			panic(err)
 		}
 	}()
@@ -93,8 +90,5 @@ func main() {
 	select {
 	case <-sig:
 		close(ch)
-		cli.Close()
-		return
 	}
-
 }

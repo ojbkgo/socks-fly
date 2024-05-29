@@ -16,10 +16,10 @@ type serverCmdConnect struct {
 	stopCh     chan struct{}
 }
 
-func (s *serverCmdConnect) response() error {
+func (s *serverCmdConnect) response(rep socks5.Socks5Rep) error {
 	resp := &socks5.Socks5CmdResponse{
 		Ver:  socks5.Socks5Version5,
-		Rep:  socks5.Socks5RepSuccess,
+		Rep:  rep,
 		Rsv:  0,
 		Atyp: s.cmd.Atyp,
 	}

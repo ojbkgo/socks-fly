@@ -46,6 +46,8 @@ func NewServer(config *ServerConfig) *server {
 func (s *server) Serve() error {
 	addr := fmt.Sprintf("%s:%d", s.config.Addr, s.config.Port)
 	s.logger.Printf("socks5 server listen on %s", addr)
+	s.logger.Printf("auth method: %d", s.config.AuthMethod)
+	s.logger.Printf("auth user: %s, passwd: %s", s.config.User, s.config.Password)
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -187,16 +189,20 @@ func (s *server) cmdExec(conn net.Conn) error {
 		}
 
 		if err := cmd.connectRemote(); err != nil {
+			s.logger.Printf("connect remote error: %v", err)
+			if err := cmd.response(socks5.Socks5RepHostUnreachable); err != nil {
+				cmd.close()
+			}
 			_ = conn.Close()
 			return err
 		}
 
+		if err := cmd.response(socks5.Socks5RepSuccess); err != nil {
+			cmd.close()
+		}
+
 		cmd.run()
 
-		if err := cmd.response(); err != nil {
-			cmd.close()
-			return err
-		}
 	case socks5.Socks5CmdBind:
 		// bind
 	case socks5.Socks5CmdUdpAssociate:
