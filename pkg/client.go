@@ -47,6 +47,7 @@ func (c *client) Open() error {
 
 	// auth
 	if err := c.authUserPassword(); err != nil {
+		log.Printf("auth failed: %v", err)
 		_ = conn.Close()
 		return err
 	}

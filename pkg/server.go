@@ -152,13 +152,18 @@ func (s *server) authUserPassword(conn net.Conn) error {
 		return err
 	}
 
+	rsp := &socks5.AuthUserPasswordResp{}
+	rsp.Ver = socks5.Socks5Version5
+
 	if s.config.User != req.Uname || s.config.Password != req.Passwd {
 		_ = conn.Close()
+		rsp.Status = 0xFF
+		if err := rsp.WriteIO(conn); err != nil {
+			return err
+		}
 		return errors.New("username or password error")
 	}
 
-	rsp := &socks5.AuthUserPasswordResp{}
-	rsp.Ver = socks5.Socks5Version5
 	rsp.Status = 0
 	if err := rsp.WriteIO(conn); err != nil {
 		_ = conn.Close()

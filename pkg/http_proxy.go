@@ -93,6 +93,16 @@ func (p *httpProxy) readHttpHeader(conn net.Conn) ([]byte, map[string]string, er
 	}
 	splitIndex := bytes.Index(partBody, []byte(headerSplitter))
 	if splitIndex == -1 {
+		// 用 16进制打印出来， 64字节一行
+		count := 0
+		for _, b := range partBody {
+			fmt.Printf("%.2x ", b)
+			count++
+			if count%16 == 0 {
+				fmt.Println()
+			}
+		}
+		fmt.Println()
 		return nil, nil, errors.New("http header format error")
 	}
 
@@ -181,6 +191,8 @@ func (p *httpProxy) Start(addr string, ch chan struct{}) error {
 					log.Printf("read http header error: %v\n", err)
 					return
 				}
+
+				log.Printf("http header: %v\n", header)
 
 				if header[headerKeyMethod] == "CONNECT" {
 					host := header[headerKeyUrl]
