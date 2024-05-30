@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"time"
 
@@ -34,7 +35,7 @@ func (s *serverCmdConnect) connectRemote() error {
 		remoteConn, err := net.DialTimeout(
 			"tcp",
 			fmt.Sprintf("%s:%d", s.cmd.Addr.Addr, s.cmd.Addr.Port),
-			time.Second*5)
+			time.Second*2)
 
 		if err != nil {
 			return err
@@ -44,7 +45,7 @@ func (s *serverCmdConnect) connectRemote() error {
 	case socks5.Socks5AddrTypeIPv6:
 		// unsupported
 	case socks5.Socks5AddrTypeDomainName:
-		remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", s.cmd.Addr.Addr, s.cmd.Addr.Port))
+		remoteConn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", s.cmd.Addr.Addr, s.cmd.Addr.Port), time.Second*2)
 		if err != nil {
 			return err
 		}
@@ -70,16 +71,16 @@ func (s *serverCmdConnect) run() {
 	go func() {
 		_, err := io.Copy(s.cliConn, s.remoteConn)
 		if err != nil {
-			s.close()
-			return
+			log.Printf("transfer remote->cli error: %v\n", err)
 		}
+		s.close()
 	}()
 
 	go func() {
 		_, err := io.Copy(s.remoteConn, s.cliConn)
 		if err != nil {
-			s.close()
-			return
+			log.Printf("transfer cli->remote error: %v\n", err)
 		}
+		s.close()
 	}()
 }
