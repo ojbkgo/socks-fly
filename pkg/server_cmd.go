@@ -35,7 +35,7 @@ func (s *serverCmdConnect) connectRemote() error {
 		remoteConn, err := net.DialTimeout(
 			"tcp",
 			fmt.Sprintf("%s:%d", s.cmd.Addr.Addr, s.cmd.Addr.Port),
-			time.Second*2)
+			time.Second)
 
 		if err != nil {
 			return err
@@ -45,7 +45,10 @@ func (s *serverCmdConnect) connectRemote() error {
 	case socks5.Socks5AddrTypeIPv6:
 		// unsupported
 	case socks5.Socks5AddrTypeDomainName:
-		remoteConn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", s.cmd.Addr.Addr, s.cmd.Addr.Port), time.Second*2)
+		remoteConn, err := net.DialTimeout(
+			"tcp",
+			fmt.Sprintf("%s:%d", s.cmd.Addr.Addr, s.cmd.Addr.Port),
+			time.Second)
 		if err != nil {
 			return err
 		}

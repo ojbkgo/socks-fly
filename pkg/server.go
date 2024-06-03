@@ -156,11 +156,11 @@ func (s *server) authUserPassword(conn net.Conn) error {
 	rsp.Ver = 0x01
 
 	if s.config.User != req.Uname || s.config.Password != req.Passwd {
-		_ = conn.Close()
 		rsp.Status = 0xFF
 		if err := rsp.WriteIO(conn); err != nil {
 			return err
 		}
+		_ = conn.Close()
 		return errors.New("username or password error")
 	}
 
